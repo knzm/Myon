@@ -1,0 +1,15 @@
+{100以下の素数を求めるプログラムです}
+{気持ち悪い部分も多いかと思いますが、各項目のＱ＆Ａを読めば納得していただけるはずです(理論値)}
+func Main()
+  for i(2; 100)
+    var b : bool :: false
+    for j(2; i - 1)
+      if (i % j = 0)
+        let b :: true
+      end if
+    end for
+    if (!b)
+      let Log@WriteLn(i)
+    end if
+  end for
+end func
