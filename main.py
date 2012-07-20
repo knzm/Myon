@@ -108,6 +108,8 @@ class Parse(object):
     def putcode(self, fname):
         _fname = "".join(fname.split(".")[:-1])+".py"
 #        _fline = open(_fname, 'w')
+#        _fline.write(u"#! /usr/bin/python".encode('utf-8'))
+#        _fline.write(u"# -*- coding:utf-8 -*-".encode('utf-8'))
 
         _pyline = u""
         for i in range(len(self.token)):
