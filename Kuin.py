@@ -21,24 +21,18 @@ Signs = [
 u"{", u"}", u"(", u")", u",", u":" \
 ]
 
-Operators = [
-[u"-", 8, 'leftx', 2]
-]
-
-
 Types = [
 u"int", u"char", u"bool" \
 ]
 
-"""
-Operator = [
-[u"(", 2, 'left'], [u")", 2, 'left'], [u"[", 2, 'left'], [u"]", 2, 'left'], [u".", 2, 'left'], \
-[u"@new", 3, 'right'], [u"+", 3, 'right'], [u"-", 3, 'right'], [u"!", 3, 'right'], \
-[u"@is", 4, 'left'], [u"@nis", 4, 'right'], [u"@in", 4, 'left'], [u"@nin", 4, 'right'], \
+Operators = [
+[u"(", 2, 'left', u"("], [u")", 2, 'left', u")"], [u"[", 2, 'left', u"["], [u"]", 2, 'left', u"]"], [u".", 2, 'left', u"."], \
+[u"@new", 3, 'right', u"new"], [u"+", 3, 'right', u"+"], [u"-", 3, 'right', u"-"], [u"!", 3, 'right', u"not"], \
+[u"@is", 4, 'left', u"is"], [u"@nis", 4, 'right', u"not is"], [u"@in", 4, 'left', u"in"], [u"@nin", 4, 'right', u"not in"], \
 [u"$", 5, 'left'], \
-[u"^", 6, 'right'], \
-[u"*", 7, 'left'], [u"/", 7, 'left'], [u"%", 7, 'left'], \
-[u"+", 8, 'left'], [u"-", 8, 'left'], \
+[u"^", 6, 'right', 2], \
+[u"*", 7, 'left', 2], [u"/", 7, 'left'], [u"%", 7, 'left'], \
+[u"+", 8, 'left', 2], [u"-", 8, 'left'], \
 [u"~", 9, 'left'], \
 [u"<>", 10, 'left'], [u"<=", 10, 'left'], [u">=", 10, 'left'], [u"=", 10, 'left'], [u"<", 10, 'left'], [u">", 10, 'left'], \
 [u"&", 11, 'left'], \
@@ -46,4 +40,4 @@ Operator = [
 [u"?", 13, 'left'], \
 [u"::", 14, 'right'], [u":+", 14, 'right'], [u":-", 14, 'right'], [u":*", 14, 'right'], [u":/", 14, 'right'], [u":%", 14, 'right'], [u":^", 14, 'right'], [u":~", 14, 'right'] \
 ]
-"""
+
