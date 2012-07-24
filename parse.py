@@ -62,7 +62,7 @@ class Parse(object):
             _list = orsplit(_code[i])
             for x in _list:
                 code.append(x)
-#        print "code:", code
+# print "code:", code
 
         for i in range(len(code)):
             if code[i] == u"\n": continue
@@ -93,7 +93,7 @@ class Parse(object):
 
             elif self.mode == "block_return":
                 if self.reindex == 0 and self.token[self.reindex][2] == True:
-                    print u"BlockError:       end       \n"+code[i]
+                    print u"BlockError: ！！！突然のendブロック！！！\n"+code[i]
 
                 idx = 0
                 for j in range(self.reindex):
@@ -101,7 +101,7 @@ class Parse(object):
                         idx = self.reindex-j
                         break
                 if code[i] != self.token[idx][3]:
-                    print u"BlockError:"+self.token[idx][3]+u"                      ><\n"+code[i]
+                    print u"BlockError:"+self.token[idx][3]+u" ブロックがちゃんと閉じられていませんみょん><\n"+code[i]
                     print idx,self.reindex
                 else:
                     self.reindex = idx-1
@@ -117,14 +117,14 @@ class Parse(object):
                 if code[i] == u")":
                     self.mode = "block_return"
             else:
-                print u"BlockError: 1  2                   ><\n"+code[i]
+                print u"BlockError: 1行に2つ以上の命令を書かないでくださいみょん><\n"+code[i]
 
         if self.mode in ["state_end", "state", "block_return", "block_start"]:
             self.mode = "block_start"
         elif self.mode == "state_start":
-            print self.block+u"  2                 ><"
+            print self.block+u"文は2行にまたがることはできませんみょん><"
         else:
-            print u"BlockError:       \n"+self.mode
+            print u"BlockError: 不明なエラー\n"+self.mode
 
     def putcode(self, fname):
         for i in range(len(self.token)):
@@ -139,7 +139,7 @@ class Parse(object):
         _fline.write(u"#! /usr/bin/python\n".encode('utf-8'))
         _fline.write(u"# -*- coding:utf-8 -*-\n".encode('utf-8'))
         _fline.write(_pyline.encode('utf-8'))
-        _fline.write(u'if __name__ == "__main__":\n    Main()'.encode('utf-8'))
+        _fline.write(u'if __name__ == "__main__":\n Main()'.encode('utf-8'))
         _fline.close()
 
         print "...compile done... -> "+_fname
