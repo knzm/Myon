@@ -9,66 +9,40 @@ class Eval(object):
         self.lexis = [[u"var", u"int", 0, u"i", 10]]
 
     def execute(self, _token):
-        prior = 15
+        prior = MAX_OPRI
         _out = []
+        _stack = [[]]
+        _braket = 0
         for i in range(len(_token)):
-            print "".join(_out), prior
             if _token[i].isdigit():
-                pass
-#            elif _token[i] in [u"(", u")"]:
-#                pass
+                _out.append(_token[i])
             elif _token[i] in [x[3] for x in self.lexis]:
-                pass
-            elif _token[i] in [x[3] for x in self.lexis]:
-                pass
+                _out.append(_token[i])
+            elif _token[i] == u'(':
+                _braket += 1
+                _stack.append([])
+            elif _token[i] == u')':
+                _braket -= 1
+                _out += _stack[-1][::-1]
+                _stack.pop()
             elif _token[i] in self.ops:
                 _prior = Operators[self.ops.index(_token[i])][1]
-                if _prior <= prior:
-                    _out = _out[:-1]+[(u"(")+_out[-1]]
+                if _prior < prior+_braket*MAX_OPRI:
+                    _stack[-1].append(_token[i])
                 else:
-                    _out.append(u")")
+                    _out.append(_stack[-1][::-1])
+                    _stack[-1] = [_token[i]]
                 prior = _prior
             else:
                 print u"SyntaxError:不明なトークンです\n",_token[i]
-            _out.append(_token[i])
-        print "".join(_out)+u")"
-
-        """
-        _ops = []
-        prior = 15
-        kakko = 0
-        for i in range(len(_token)):
-            if _token[i].isdigit():
-                continue
-            elif _token[i] in [x[3] for x in self.lexis]:
-                continue
-            elif _token[i] in self.ops:
-                _idx = self.ops.index(_token[i])
-                _ops.append([_token[i], Operators[_idx][1]-kakko*MAX_OPE, i])
-            elif _token[i] == u"(":
-                kakko += 1
-            elif _token[i] == u")":
-                kakko -= 1
-            else:
-                print u"SyntaxError:不明なトークンです\n",_token[i]
-
-        _ops = sorted(_ops, key=lambda x:int(x[1]))
-        _out = _token
-        print _ops
-        print _out
-        for i in range(len(_ops)):
-            _out = _out[:_ops[i][2]-1]+[u"("+"".join(_out[_ops[i][2]-1:_ops[i][2]+2])+u")"]+_out[_ops[i][2]+2:]
-            print _out
-        print "".join(_out)
-        """
+        return _out
 
 class Lexer(object):
     def __init__(self):
         self.lexis = []
         self.index = -1
         self.eval = Eval()
-#        self.eval.execute(list(u"1*(3^((4/2)^(i*2)))"))
-        self.eval.execute(list(u"1^(2*3)"))
+        self.eval.execute(list(u"5^((1*3)^(2*5))"))
     
     def newlex(self, *_token):
         self.lexis.append(*_token)
@@ -83,7 +57,6 @@ class Lexer(object):
             _token[3] = u"def"
             self.newlex([u"func", u"void", _token[0], _token[4]])
             # set some parameters
-
             _token[3] += u" "+u"".join(_token[4:])+u":"
         elif _token[3] == u"for":
             self.newlex([u"var", u"int", _token[0], _token[4]])

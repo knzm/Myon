@@ -25,26 +25,33 @@ Types = [
 u"int", u"char", u"bool" \
 ]
 
+MAX_OPRI = 15
+
 Operators = [
-#[u"(", 15, 'left', u"("], [u")", 15, 'left', u")"], \
-#[u"[", 2, 'left', u"["], [u"]", 2, 'left', u"]"], \
-[u".", 2, 'left', u"."], \
-[u"@new", 3, 'right', u"new"], [u"+", 3, 'right', u"+"], \
-[u"-", 3, 'right', u"-"], [u"!", 3, 'right', u"not"], \
-[u"@is", 4, 'left', u"is"], [u"@nis", 4, 'right', u"not is"], \
-[u"@in", 4, 'left', u"in"], [u"@nin", 4, 'right', u"not in"], \
-[u"$", 5, 'left'], \
-[u"^", 6, 'right', 2], \
-[u"*", 7, 'left', 2], [u"/", 7, 'left'], [u"%", 7, 'left'], \
-[u"+", 8, 'left', 2], [u"-", 8, 'left'], \
-[u"~", 9, 'left'], \
-[u"<>", 10, 'left'], [u"<=", 10, 'left'], [u">=", 10, 'left'], \
-[u"=", 10, 'left'], [u"<", 10, 'left'], [u">", 10, 'left'], \
-[u"&", 11, 'left'], \
-[u"|", 12, 'left'], \
-[u"?", 13, 'left'], \
-[u"::", 14, 'right'], [u":+", 14, 'right'], [u":-", 14, 'right'], \
-[u":*", 14, 'right'], [u":/", 14, 'right'], [u":%", 14, 'right'], \
-[u":^", 14, 'right'], [u":~", 14, 'right'] \
+[u"("   , 2 , 'left' , u"("  , 0], [u")"   , 2,  'left' , u")"     , 0], \
+[u"["   , 2 , 'left' , u"["  , 0], [u"]"   , 2,  'left' , u"]"     , 0], \
+[u"."   , 2 , 'left' , u"."  , 2], \
+[u"@new", 3 , 'right', u"new", 1], [u"+"   , 3,  'right', u"+"     , 1], \
+[u"-"   , 3 , 'right', u"-"  , 1], [u"!"   , 3,  'right', u"not"   , 1], \
+[u"@is" , 4 , 'left' , u"is" , 1], [u"@nis", 4,  'right', u"_"     , 1], \
+[u"@in" , 4 , 'left' , u"in" , 1], [u"@nin", 4,  'right', u"not in", 1], \
+[u"$"   , 5 , 'left' , u"_"  , 2], \
+[u"^"   , 6 , 'right', u"**" , 2], \
+[u"*"   , 7 , 'left' , u"*"  , 2], [u"/"   , 7,  'left' , u"/"     , 2], \
+[u"%"   , 7 , 'left' , u"%"  , 2], \
+[u"+"   , 8 , 'left' , u"+"  , 2], [u"-"   , 8,  'left' , u"-"     , 2], \
+[u"~"   , 9 , 'left' , u"+"  , 2], \
+[u"<>"  , 10, 'left' , u"!=" , 2], [u"<="  , 10, 'left' , u"<="    , 2], \
+[u">="  , 10, 'left' , u">=" , 2], \
+[u"="   , 10, 'left' , u"==" , 2], [u"<"   , 10, 'left' , u"<"     , 2], \
+[u">"   , 10, 'left' , u">"  , 2], \
+[u"&"   , 11, 'left' , u"and", 2], \
+[u"|"   , 12, 'left' , u"or" , 2], \
+[u"?"   , 13, 'left' , u"_"  , 2], \
+[u"::"  , 14, 'right', u"="  , 2], [u":+"  , 14, 'right', u"+="    , 2], \
+[u":-"  , 14, 'right', u"-=" , 2], \
+[u":*"  , 14, 'right', u"*=" , 2], [u":/"  , 14, 'right', u"/="    , 2], \
+[u":%"  , 14, 'right', u"%"  , 2], \
+[u":^"  , 14, 'right', u"**=", 2], [u":~"  , 14, 'right', u"+="    , 2] \
 ]
 
