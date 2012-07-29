@@ -11,39 +11,37 @@ class Lexer(object):
         self.eval = evals.Eval()
     
     def analylex(self, _token):
-# print "token:", _token
+#        print "token:", _token
         if _token[3] == u"func":
             _token[3] = u"def"
             self.eval.newlex([u"func", u"void", _token[0], _token[4]])
             # set some parameters
             _token[3] += u" "+u"".join(_token[4:])+u":"
+
         elif _token[3] == u"for":
             self.eval.newlex([u"var", u"int", _token[0], _token[4]])
             
-            mode, param, index = "(", [u""], 0
+            mode, param, index = "(", [[]], 0
             for i in range(len(_token)):
                 if mode == "(":
                     if _token[i] == u"(":
                         mode = "param"
                 elif mode == "param":
                     if _token[i] == u",":
-                        param.append(u"")
+                        param.append([])
                         index += 1
                     elif _token[i] == u")": mode = u")"
                     else:
-                        param[index] += _token[i]
-# print param
-                        # check if the value is defined and calculate
-# else: print u"SyntaxError: for()の括弧内は数値のみです><\n"+_token[i]
+                        param[index].append(_token[i])
                 elif mode == ")":
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+_token[4] + u" in range("+str(", ".join(param))+u"):"
+            _token[3] += u" "+_token[4] + u" in range("+str(", ".join([self.eval.execute(x) for x in param]))+u"):"
             _token[5:] = ""
 
         elif _token[3] == u"if":
-            mode, param, index = "(", [u""], 0
+            mode, param = "(", [u""]
             for i in range(len(_token)):
                 if mode == "(":
                     if _token[i] == u"(":
@@ -51,19 +49,12 @@ class Lexer(object):
                 elif mode == "param":
                     if _token[i] == u")": mode = u")"
                     else:
-                        param[index] += _token[i]
-# print param
-                        # check if the value is defined and calculate
-# else: print u"SyntaxError: for()の括弧内は数値のみです><\n"+_token[i]
+                        param.append(_token[i])
                 elif mode == ")":
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+str(", ".join(param))+u":"
-
-            # calculate
-            if len(_token[3].split("="))!=1: _token[3] = u"==".join(_token[3].split("="))
-            if len(_token[3].split("!"))!=1: _token[3] = u"not ".join(_token[3].split("!"))
+            _token[3] += u" "+self.eval.execute(param)+u":"
 
         elif _token[3] == u"var":
             mode = "var"

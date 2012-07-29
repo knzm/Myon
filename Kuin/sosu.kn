@@ -1,20 +1,20 @@
-{100以下の {素数} を求めるプログラムです}
-{気持ち悪い部分も多いかと思いますが、言語仕様ページの各Ｑ＆Ａを読めば納得していただけるはずです(理論値)}
+{ 100以下の {素数} を求めるプログラムです }
+{ 気持ち悪い部分も多いかと思いますが、言語仕様ページの各Ｑ＆Ａを読めば納得していただけるはずです(理論値) }
 func Main()
   for i(2, 100)
     var b : bool :: false
 
-    for j(2, i - 1)
+    for j(2, i-1)
       if(i % j = 0)
         do b :: true
       end if
     end for
 
     if(!b)
-{      do Kuin@Dbg(i.ToStr())}
+{      do Kuin@Dbg(i.ToStr()) }
       do Log@WriteLn(i)
     end if
   end for
 
-{  do Kuin@Stop()}
+{  do Kuin@Stop() }
 end func
