@@ -126,6 +126,8 @@ class Parse(object):
         else:
             print u"BlockError: 不明なエラー\n"+self.mode
 
+        return self.token
+
     def putcode(self, fname):
         for i in range(len(self.token)):
             self.token[i] = self.lexer.analylex(self.token[i])
@@ -143,4 +145,14 @@ class Parse(object):
         _fline.close()
 
         print "...compile done... -> "+_fname
+
+    def putline(self):
+        for i in range(len(self.token)):
+            self.token[i] = self.lexer.analylex(self.token[i])
+
+        _pyline = u""
+        for i in range(len(self.token)):
+            _pyline += u" "*4*self.token[i][0]+self.token[i][3]+u"\n"
+
+        return _pyline
 

@@ -38,6 +38,7 @@ class Eval(object):
             else:
                 _out.append(_token[i])
             index += 1
+        print _out
         return _out[0]
 
     def txt2rpn(self, _token):
@@ -77,5 +78,6 @@ class Eval(object):
             pass
         else: _out += _stack[-1][::-1]
 
+        print _out
         return _out
 
