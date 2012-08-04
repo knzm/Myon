@@ -6,17 +6,22 @@ import evals
 
 class Lexer(object):
     def __init__(self):
-        self.lexis = []
         self.index = -1
         self.eval = evals.Eval()
+
+        self.depth = 0
+        self.blockIndex = [[0, 0]]
     
     def analylex(self, _token):
-#        print "token:", _token
         if _token[3] == u"func":
             _token[3] = u"def"
-            self.eval.newlex([u"func", u"void", _token[0], _token[4]])
-            # set some parameters
-            _token[3] += u" "+u"".join(_token[4:])+u":"
+
+            _out = []
+            for i in _token[5:]:
+                if i != u":" and i not in Types:
+                    _out.append(i)
+
+            _token[3] += u" "+_token[4]+u"".join(_out)+u":"
 
         elif _token[3] == u"for":
             self.eval.newlex([u"var", u"int", _token[0], _token[4]])
@@ -37,7 +42,7 @@ class Lexer(object):
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+_token[4] + u" in range("+str(", ".join([self.eval.execute(x) for x in param]))+u"):"
+            _token[3] += u" "+_token[4] + u" in range("+str(", ".join([self.eval.execute(x, _token[0]) for x in param]))+u"):"
             _token[5:] = ""
 
         elif _token[3] == u"if":
@@ -54,7 +59,7 @@ class Lexer(object):
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+self.eval.execute(param)+u":"
+            _token[3] += u" "+self.eval.execute(param, _token[0])+u":"
 
         elif _token[3] == u"var":
             mode = "var"
@@ -70,7 +75,7 @@ class Lexer(object):
                     else: print u"SyntaxError: :による変数の宣言が不正です><\n"+str(_token[i])
                 elif mode == "type":
                     if _token[i] in Types:
-                        self.eval.replex(1, _token[i])
+                        self.eval.replex(2, _token[i])
                         mode = "::"
                     else:
                         print u"SytaxError: 存在しない型です><\n"+_token[i]
@@ -78,10 +83,7 @@ class Lexer(object):
                     if _token[i] == u"::": mode = "attr"
                     else: print u"SyntaxError: ::による変数の代入が不正です><\n"+str(_token[i])
                 elif mode == "attr":
-                    if self.eval.elements[self.index][1] == u"bool":
-                        if _token[i] == u"false": _token[i] = u"False"
-                        else: _token[i] = u"True"
-                    self.eval.replex(4, _token[i])
+                    self.eval.replex(5, _token[i])
                 else: print u"不明なえらー\n"+str(_token[i])
 
             if not mode in ["type", "attr"]:
@@ -89,7 +91,7 @@ class Lexer(object):
 
             if mode == "attr":
                 _this = self.eval.elements[self.index]
-                _token[3] = _this[3]+u" = "+_this[1]+u"("+_this[4]+")"
+                _token[3] = self.eval.execute([_this[4]], _token[0])+u" = "+_this[2]+u"("+self.eval.execute([_this[5]], _token[0])+")"
 
         elif _token[3] == u"do":
             mode = "do"
@@ -98,35 +100,29 @@ class Lexer(object):
                 if mode == "do":
                     if _token[i] == u"do": mode = "name"
                 elif mode == "name":
-                    if _token[i] in [x[3] for x in self.eval.elements]:
-                        _index = [x[3] for x in self.eval.elements].index(_token[i])
-                        mode = "::"
-                    elif _token[i] == u"Log@WriteLn":
-                        mode = "function"
-                    else:
-                        print u"SyntaxError: 存在しない変数または関数です><\n"+_token[i]
+                    if _token[i] == "::": mode = "::"
                 elif mode == "::":
-                    if _token[i] == u"::": mode = "attr"
-                    else: print u"SyntaxError: ::による変数の代入が不正です><\n"+str(_token[i])
-                elif mode == "attr":
-                    if self.eval.elements[_index][1] == u"bool":
-                        if _token[i] == u"false": _token[i] = u"False"
-                        else: _token[i] = u"True"
-                    self.eval.elements[_index][4] = _token[i]
-                elif mode == "function":
                     pass
+#                    else: print u"SyntaxError: ::による変数の代入が不正です><\n"+str(_token[i])
                 else: print u"不明なえらー\n"+mode
 
-            if not mode in ["type", "attr", "function"]:
-                print u"SyntaxError: varの宣言が不正です><\n"+_token[i]
+            if not mode in ["name", "::"]:
+                print u"SyntaxError: varの宣言が不正です><\n",mode
 
-            if mode == "attr":
-                _this = self.eval.elements[_index]
-                _token[3] = _this[3]+u" = "+_this[4]
+            if mode == "name":
+                _token[3] = self.eval.execute(_token[4:], _token[0])
 
-            if mode == "function":
-                if _token[4] == u"Log@WriteLn":
-                    _token[3] = u"print "+_token[6]
+            if mode == "::":
+                _token[3] = self.eval.execute(_token[4], _token[0])+u" = "+self.eval.execute(_token[6:], _token[0])
+
+        elif _token[3] == u"__python__":
+            _token[3] = "".join(_token[4:])
+
+        elif _token[3] == u"import":
+            _token[3] = " ".join(_token[3:])
+
+        else:
+            print u"WARNING W0???:定義されていない識別子です。\n",_token[3]
 
         return _token
 

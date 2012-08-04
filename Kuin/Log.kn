@@ -1,0 +1,14 @@
+{ Standard IO Library }
+
+func WriteLn(a: int)
+    __python__
+        print a
+    __end_python__
+end func
+
+func Write(a: int)
+    __python__
+        print a,
+    __end_python__
+end func
+

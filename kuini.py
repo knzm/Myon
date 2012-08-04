@@ -25,4 +25,4 @@ if __name__=="__main__":
 
         kuini.parse.__init__()
         print kuini.parse.gettoken(s)[0]
-#        print kuini.parse.putline(kuini.parse.gettoken(s)[0])
+        print kuini.eval.execute(kuini.parse.gettoken(s)[0][3:], u"0_0")
