@@ -19,7 +19,7 @@ def orsplit(_str):
             mode = 'brakets'+str(i)
         elif _str[i] == u'\n':
             mode = '\n'
-        elif _str[i].isalnum() or _str[i] == u"@" or _str[i] == u"_":
+        elif _str[i].isalnum() or _str[i] in [u"@", u"_", u'"', u"'"]:
             mode = 'alnum'
         else:
             mode = 'other'
@@ -220,8 +220,8 @@ class Parse(object):
 
         return _pyline
 
-    def checkerror(self):
-        if not u"Main" in [x[4] for x in self.token]:
+    def checkerror(self, isMain=False):
+        if isMain==True and not u"Main" in [x[4] for x in self.token]:
             print u"Warning: W0001 Main関数がありません。意図されたプログラムですか？"
         
         if self.mode == "__python__":
@@ -233,4 +233,12 @@ class Parse(object):
 
         return
 
+    def checkfunc(self):
+        for excompile in self.lexer.eval.excompile:
+            isFound = False
+            for element in self.lexer.eval.elements:
+                if element[0] == excompile[0] and element[4] == excompile[1]:
+                    isFound = True
+            if not isFound:
+                print u"Error: E0025 未定義の識別子です。タイプミスに気をつけ、正しい名前を指定してください。\n",excompile
 

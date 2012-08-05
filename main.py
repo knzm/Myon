@@ -30,13 +30,15 @@ class Myon(object):
 
     def main(self):
         self.loadfile(self.fname)
-        self.parse.checkerror()
+        self.parse.checkerror(True)
         self.parse.putcode(self.fname, mode="main")
 
         path = u"/".join(self.fname.split(u"/")[:-1])+u"/"
         for current_file in self.parse.fname:
             self.loadfile(path+current_file)
             self.parse.putcode(path+current_file)
+        self.parse.checkerror()
+        self.parse.checkfunc()
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

@@ -24,5 +24,5 @@ if __name__=="__main__":
         if s=="quit": break
 
         kuini.parse.__init__()
-        print kuini.parse.gettoken(s)[0]
-        print kuini.eval.execute(kuini.parse.gettoken(s)[0][3:], u"0_0")
+        print kuini.parse.gettoken(s, "", "")[0]
+        print eval(kuini.eval.execute(kuini.parse.gettoken(s, "", "")[0][3:], u"0_0"))

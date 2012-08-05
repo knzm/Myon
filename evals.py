@@ -3,6 +3,16 @@
 
 from Kuin import *
 
+def whtype(_str):
+    _type = u"None"
+    if _str.isdigit():
+        _type = u"int"
+    elif _str in [u"true", u"false"]:
+        _type = u"bool"
+    else:
+        _type = u"char"
+    return _type
+
 class Eval(object):
     def __init__(self):
         self.ops = [x[0] for x in Operators]
@@ -45,25 +55,40 @@ class Eval(object):
         index = -1
         right = 0
         offset = 0
+
+        arg = []
         for i in range(len(_token)):
 #            print _out
             ###
 #            if right > 0: offset = 0
 #            else: offset = 0
 
-            if _token[i] in self.ops:
-                _idx = self.ops.index(_token[i])
+            if _token[i][0] in self.ops:
+                _idx = self.ops.index(_token[i][0])
 #                if right > 0 and _token[i] != u"^":
 #                    for j in range(right):
 #                        if offset: _out[-2-offset:-offset] = [u"pow("+_out[-1-offset]+u","+_out[-2-offset]+u")"]
 #                        else: _out[-2:] = [u"pow("+_out[-1]+u","+_out[-2]+u")"]
 #                    right = 0
+
+                # ()のある処理
+                if len(arg) != Operators[_idx][4]:
+                    print u"Error: E00?? 演算子の対応が取れません\n", arg
+                else:
+                    _type = arg[0]
+                    for i in arg:
+                        if _type != i:
+                            print u"Error: E0??? 演算子の型が合いません\n", arg
+
+                    arg = [arg[-1]]
+#                    print arg
                     
                 if Operators[_idx][4]==1:
                     _out[index-1:] = [Operators[_idx][3]+_out[index-1]]
                 elif Operators[_idx][4]==2:
-                    if index <= 0:
-                        print u"SyntaxError: 演算子の対応が取れません\n", _token
+                        
+#                    if index <= 0:
+#                        print u"SyntaxError: 演算子の対応が取れません\n", _token[0]
 
 #                    elif Operators[_idx][2] == u"right":
 #                        _out[index-1:] = [_out[index-1]+Operators[_idx][3]+_out[index]]
@@ -73,10 +98,13 @@ class Eval(object):
 #                    else:
 #                        _out[index-1:] = [u"("+_out[index-1]+Operators[_idx][3]+_out[index]+u")"]
                     _out[index-1:] = [u"("+_out[index-1]+Operators[_idx][3]+_out[index]+u")"]
-                        
+
                 index -= Operators[_idx][4]
+            elif _token[i][0].split(u".")[-1] in [x[1] for x in self.excompile]:
+                pass
             else:
-                _out.append(_token[i])
+                _out.append(_token[i][0])
+                arg.append(_token[i][1])
             index += 1
 
 #        if right > 0:
@@ -96,25 +124,25 @@ class Eval(object):
         _braket = 0
         mode = ""
         for i in range(len(_token)):
+            _type = whtype(_token[i])
             if mode == "type":
                 if not _token[i] in Types:
                     print u"Cautoin:C00?? 定義されていない型です。\n", _token[i]
                 mode = ""
-                _out[-1] = _token[i]+u"("+_out[-1]+u")"
+#                _out[-1] = _token[i]+u"("+_out[-1]+u")"
+                _out[-1] = [_token[i]+u"("+_out[-1]+u")",_token[i]]
 
             elif _token[i] == u"": continue
-            elif _token[i].isdigit():
-                _out.append(_token[i])
-                _mode = u"digit"
             elif _token[i] in [x[4] for x in self.elements]:
-#                print _token[i], self.elements
-                d = self.elements[([x[4] for x in self.elements].index(_token[i]))][3].split("_")
+                _this = self.elements[([x[4] for x in self.elements].index(_token[i]))]
+                d = _this[3].split("_")
                 _depth = depth.split("_")
                 
                 if not (d[0] < _depth[0] or (d[0] == _depth[0] and d[1] == _depth[1])):
                     print u"Warning:W000? 定義されていない識別子です。\n", _token[i]
 
-                _out.append(_token[i])
+#                _out.append(_token[i])
+                _out.append([_token[i], _this[2]])
             elif _token[i] == u"(":
                 _braket += 1
                 _stack.append([])
@@ -125,26 +153,31 @@ class Eval(object):
             elif _token[i] in self.ops:
                 idx = Operators[self.ops.index(_token[i])]
                 if idx[4] == 1:
-                    _stack[-1].append(_token[i])
+                    _stack[-1].append([_token[i],u"any",u"any"])
                 elif idx[4] == 2:
                     prior = idx[1]
                     if prior < _prior+_braket*MAX_OPRI:
-                        _stack[-1].append(_token[i])
+                        _stack[-1].append([_token[i],u"any",u"any",u"any"])
                     else:
                         _out += _stack[-1][::-1]
-                        _stack[-1] = [_token[i]]
+                        _stack[-1] = [[_token[i],u"any",u"any",u"any"]]
                     _prior = prior
-            elif _token[i] == u"true": _stack.append([u"True"])
-            elif _token[i] == u"false": _stack.append([u"False"])
             elif u"@" in _token[i]:
                 name = _token[i].split(u"@")
                 self.excompile.append(name)
-                if name[1] in [x[4] for x in self.elements]: _stack[-1]+=[name[1]]
-                else: _stack[-1]+=[name[0]+u"."+name[1]]
+                if name[1] in [x[4] for x in self.elements]:
+                    _stack[-1]+=[name[1]]
+                else:
+                    _stack.append([[name[0]+u"."+name[1]]])
             elif _token[i] == u":":
                 mode = "type"
             elif _token[i] == u"import":
                 _out.append(" ".join(_token[i:]))
+            elif _token[i] != u"None":
+                if _type == u"bool":
+                    _token[i] = _token[i][0].upper()+_token[i][1:]
+#                _out.append(_token[i])
+                _out.append([_token[i], _type])
             else:
                 print u"SyntaxError:不明なトークンです\n",_token[i]
         if _stack == [[]]:
