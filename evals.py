@@ -51,6 +51,10 @@ class Eval(object):
         return -1
 
     def rpn2py(self, _token):
+#        for i in self.elements:
+#            print i
+#        print ""
+
         _out = []
         index = -1
         right = 0
@@ -72,7 +76,7 @@ class Eval(object):
 #                    right = 0
 
                 # ()のある処理
-                if len(arg) != Operators[_idx][4]:
+                if len(arg) < len(_token[i])-2:
                     print u"Error: E00?? 演算子の対応が取れません\n", arg
                 else:
                     _type = arg[0]
@@ -80,8 +84,7 @@ class Eval(object):
                         if _type != i:
                             print u"Error: E0??? 演算子の型が合いません\n", arg
 
-                    arg = [arg[-1]]
-#                    print arg
+                    arg[-Operators[_idx][4]:] = [arg[-1]]
                     
                 if Operators[_idx][4]==1:
                     _out[index-1:] = [Operators[_idx][3]+_out[index-1]]
@@ -101,7 +104,7 @@ class Eval(object):
 
                 index -= Operators[_idx][4]
             elif _token[i][0].split(u".")[-1] in [x[1] for x in self.excompile]:
-                pass
+                _out.append(_token[i][0])
             else:
                 _out.append(_token[i][0])
                 arg.append(_token[i][1])
@@ -157,7 +160,7 @@ class Eval(object):
                 elif idx[4] == 2:
                     prior = idx[1]
                     if prior < _prior+_braket*MAX_OPRI:
-                        _stack[-1].append([_token[i],u"any",u"any",u"any"])
+                       _stack[-1].append([_token[i],u"any",u"any",u"any"])
                     else:
                         _out += _stack[-1][::-1]
                         _stack[-1] = [[_token[i],u"any",u"any",u"any"]]
