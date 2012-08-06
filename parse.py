@@ -85,7 +85,7 @@ class Parse(object):
                 if self.exflag == False:
                     break
 
-            if self.mode != "__python__" and code[i] == u"\n": continue
+            if self.mode not in ["__python__", "state_start"] and code[i] == u"\n": continue
             if code[i] == u"{":
                 self.premode = self.mode
                 self.mode = "comment"
@@ -142,9 +142,10 @@ class Parse(object):
                 self.addtoken(code[i])
 
             elif self.mode == "state_start":
-                self.addtoken(code[i])
-                if code[i] == u")":
+                if u'\n' == code[i]:
                     self.mode = "block_return"
+                else:
+                    self.addtoken(code[i])
 
             elif self.mode == "__python__":
                 if code[i] == u"__end_python__":
@@ -164,13 +165,13 @@ class Parse(object):
             else:
                 print u"BlockError: 1行に2つ以上の命令を書かないでくださいみょん><\n"+code[i]
 
-            if code[i] == u"func":
-                self.lexer.eval.newlex([u"func", u"void", u"", code[i+1]])
+            if self.mode == "block_return" and u"func" in code and code[0] != u"end":
+                self.token[-1][5] = self.lexer.analylex(self.token[-1], True)[5]
 
         if self.mode in ["state_end", "state", "block_return", "block_start"]:
             self.mode = "block_start"
         elif self.mode == "state_start":
-            print self.block+u"文は2行にまたがることはできませんみょん><"
+            print u"文は2行にまたがることはできませんみょん><", code[i]
         elif self.mode == "__python__":
             pass
         else:

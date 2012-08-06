@@ -1,10 +1,11 @@
 { 100以下の {素数} を求めるプログラムです }
 { 気持ち悪い部分も多いかと思いますが、言語仕様ページの各Ｑ＆Ａを読めば納得していただけるはずです(理論値) }
-import Log
+{ import Log }
 
 func Main()
     for i(2, 100)
         var b : bool :: false
+        var a : int :: 0
 
         for j(2, i-1)
             if(i % j = 0)
@@ -14,10 +15,20 @@ func Main()
 
         if(!b)
 {            do Kuin@Dbg(i.ToStr()) }
-            do Log@WriteLn(i)
+{            do Log@WriteLn(i) }
+            do a::2+3*Sosu@AAA(311+221,200)
         end if
     end for
 
 {  do Kuin@Stop() }
 end func
+
+func AAA(a:int, b:int) :bool
+    __python__
+        print "hello!"
+    __end_python__
+end func
+
+
+
 

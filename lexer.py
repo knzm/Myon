@@ -12,16 +12,54 @@ class Lexer(object):
         self.depth = 0
         self.blockIndex = [[0, 0]]
     
-    def analylex(self, _token):
+    def analylex(self, _token, isFunc = False):
         if _token[3] == u"func":
-            _token[3] = u"def"
+            if isFunc:
+                mode, arg, index = "(", [[]], 0
+                isEnd = False
+                _type = u"void"
+                for i in range(len(_token)):
+                    if mode == "(":
+                        if _token[i] == u"(":
+                            mode = "arg"
+                    elif mode == "arg":
+                        if _token[i] == u",":
+                            arg.append([])
+                            index += 1
+                        elif _token[i] == u")":
+                            mode = ":"
+                            isEnd = True
+                        elif _token[i].isalnum():
+                            arg[index] += [_token[i],u"void"]
+                            mode = ":"
+                        else:
+                            print u"Error: E3232 Unexpected Error"
+                    elif mode == ":":
+                        if _token[i] == u":":
+                            mode = "type"
+                        else:
+                            print u"Error: E1121 ':'が来るべきところに来ていません。\n"
+                    elif mode == "type":
+                        if _token[i] in Types:
+                            if isEnd:
+                                _type = _token[i]
+                                break
+                            else:
+                                mode = "arg"
+                                arg[index][1] = _token[i]
+                        else:
+                            print u"Error: E1010 存在しない型です\n", _token[i]
+                    else :
+                        print u"Error: EEEE Unexpected Error"
+                        
+                _token[5] = arg
+                self.eval.newlex([u"func", _type, _token[0], _token[4], _token[5]])
+            else:
+                _token[3] = u"def"
 
-            _out = []
-            for i in _token[5:]:
-                if i != u":" and i not in Types:
-                    _out.append(i)
-
-            _token[3] += u" "+_token[4]+u"".join(_out)+u":"
+                arg = ""
+                if _token[5] != [[]]: arg = u",".join([x[0] for x in _token[5]])
+                _token[3] += u" "+_token[4]+u"("+arg+u"):"
 
         elif _token[3] == u"for":
             self.eval.newlex([u"var", u"int", _token[0], _token[4]])
@@ -42,7 +80,7 @@ class Lexer(object):
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+_token[4] + u" in range("+str(", ".join([self.eval.execute(x, _token[0]) for x in param]))+u"):"
+            _token[3] += u" "+_token[4] + u" in range("+str(", ".join([y[0] for y in [self.eval.execute(x, _token[0]) for x in param]]))+u"):"
             _token[5:] = ""
 
         elif _token[3] == u"if":
@@ -59,7 +97,7 @@ class Lexer(object):
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+self.eval.execute(param, _token[0])+u":"
+            _token[3] += u" "+"".join([y[0] for y in [self.eval.execute(param, _token[0])]])+u":"
 
         elif _token[3] == u"var":
             mode = "var"
@@ -91,7 +129,8 @@ class Lexer(object):
 
             if mode == "attr":
                 _this = self.eval.elements[self.index]
-                _token[3] = self.eval.execute([_this[4]], _token[0])+u" = "+_this[2]+u"("+self.eval.execute([_this[5]], _token[0])+")"
+
+                _token[3] = "".join([y[0] for y in [self.eval.execute([_this[4]], _token[0])]])+u" = "+_this[2]+u"("+"".join([y[0] for y in [self.eval.execute([_this[5]], _token[0])]])+u")"
 
         elif _token[3] == u"do":
             mode = "do"
@@ -113,7 +152,8 @@ class Lexer(object):
                 _token[3] = self.eval.execute(_token[4:], _token[0])
 
             if mode == "::":
-                _token[3] = self.eval.execute(_token[4], _token[0])+u" = "+self.eval.execute(_token[6:], _token[0])
+                _token[3] = "".join([y[0] for y in [self.eval.execute(_token[4], _token[0])
+]])+u" = "+"".join([y[0] for y in [self.eval.execute(_token[6:], _token[0])]])
 
         elif _token[3] == u"__python__":
             _token[3] = "".join(_token[4:])

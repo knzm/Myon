@@ -7,6 +7,7 @@ func WriteLn(a: int)
 end func
 
 func Write(a: int)
+    do a :: true*3
     __python__
         print a,
     __end_python__

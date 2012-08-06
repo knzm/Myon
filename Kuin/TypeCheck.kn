@@ -1,0 +1,10 @@
+{ 型チェックサンプル }
+func Main()
+    var a:bool::false
+    do a :: 2*TypeCheck@const_bool()
+end func
+
+func const_bool():bool
+end func
+
+
