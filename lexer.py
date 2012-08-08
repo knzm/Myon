@@ -11,7 +11,7 @@ class Lexer(object):
 
         self.depth = 0
         self.blockIndex = [[0, 0]]
-    
+
     def analylex(self, _token, isFunc = False):
         if _token[3] == u"func":
             if isFunc:
@@ -80,7 +80,7 @@ class Lexer(object):
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+_token[4] + u" in range("+str(", ".join([y[0] for y in [self.eval.execute(x, _token[0]) for x in param]]))+u"):"
+            _token[3] += u" "+_token[4] + u" in range("+u",".join([y[0] for y in [self.eval.execute(x, _token[0]) for x in param]])+u"):"
             _token[5:] = ""
 
         elif _token[3] == u"if":
@@ -97,7 +97,7 @@ class Lexer(object):
                     if len(param) in [2, 3]: break
                     else: print u"SyntaxError: for()の中のパラメータの数がおかしいです><"
 
-            _token[3] += u" "+"".join([y[0] for y in [self.eval.execute(param, _token[0])]])+u":"
+            _token[3] += u" "+self.eval.execute(param, _token[0])[0]+u":"
 
         elif _token[3] == u"var":
             mode = "var"
@@ -124,13 +124,18 @@ class Lexer(object):
                     self.eval.replex(5, _token[i])
                 else: print u"不明なえらー\n"+str(_token[i])
 
-            if not mode in ["type", "attr"]:
+            if not mode in ["type", "attr", "::"]:
                 print u"SyntaxError: varの宣言が不正です><\n"+_token[i]
 
             if mode == "attr":
                 _this = self.eval.elements[self.index]
 
-                _token[3] = "".join([y[0] for y in [self.eval.execute([_this[4]], _token[0])]])+u" = "+_this[2]+u"("+"".join([y[0] for y in [self.eval.execute([_this[5]], _token[0])]])+u")"
+                _var = self.eval.execute(_this[4], _token[0])
+                _val = self.eval.execute(_this[5:], _token[0])
+                if _var[1] != _val[1]:
+                    print u"Error: E2323 type error!\n",_var[0], _val[0]
+                else:
+                    _token[3] = _var[0]+u" = "+_val[0]
 
         elif _token[3] == u"do":
             mode = "do"
@@ -149,11 +154,15 @@ class Lexer(object):
                 print u"SyntaxError: varの宣言が不正です><\n",mode
 
             if mode == "name":
-                _token[3] = self.eval.execute(_token[4:], _token[0])
+                _token[3] = self.eval.execute(_token[4:], _token[0])[0]
 
             if mode == "::":
-                _token[3] = "".join([y[0] for y in [self.eval.execute(_token[4], _token[0])
-]])+u" = "+"".join([y[0] for y in [self.eval.execute(_token[6:], _token[0])]])
+                _var = self.eval.execute(_token[4], _token[0])
+                _val = self.eval.execute(_token[6:], _token[0])
+                if _var[1] != _val[1]:
+                    print u"Error: E2323 type error!\n",_var[0], _val[0]
+                else:
+                    _token[3] = _var[0]+u" = "+_val[0]
 
         elif _token[3] == u"__python__":
             _token[3] = "".join(_token[4:])
@@ -161,6 +170,12 @@ class Lexer(object):
         elif _token[3] == u"import":
             _token[3] = " ".join(_token[3:])
 
+        elif _token[3] == u"return":
+            _arg = self.eval.execute(_token[4:], _token[0])
+            if _token[2] != _arg[1]:
+                print u"Error: E32404 Type Error!",_token,_arg
+            else:
+                _token[3] += u" "+_arg[0]
         else:
             print u"WARNING W0???:定義されていない識別子です。\n",_token[3]
 

@@ -22,7 +22,9 @@ class Myon(object):
         self.parse.lexer.eval.setfile(filename)
 
         self.fline = open(filename, 'r')
-        self.pline = self.fline.readline().decode('utf-8')
+
+        if self.fname == filename: self.parse.gettoken(u"import Kuin\n", self.fname, filename)
+        self.pline = u"hoge"
         while self.pline != u"":
             self.pline = self.fline.readline().decode('utf-8')
             if self.parse.gettoken(self.pline, self.fname, filename) == -1: return -1

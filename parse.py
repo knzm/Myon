@@ -51,6 +51,8 @@ class Parse(object):
         self.excompile = []
         self.exflag = False
 
+        self.comment = 0
+
     def newtoken(self, _block, _token):
         self.token.append([str(self.depth)+u"_"+str(self.blockIndex[self.depth][1]), _block, False, _token])
         self.index += 1
@@ -87,11 +89,14 @@ class Parse(object):
 
             if self.mode not in ["__python__", "state_start"] and code[i] == u"\n": continue
             if code[i] == u"{":
-                self.premode = self.mode
+                if self.mode != "comment": self.premode = self.mode
                 self.mode = "comment"
+                self.comment += 1
             
             if self.mode == "comment":
                 if code[i] == u"}":
+                    self.comment -= 1
+                if self.comment == 0:
                     self.mode = self.premode
 
             elif self.mode == "block_start":
@@ -141,6 +146,12 @@ class Parse(object):
             elif self.mode == "state":
                 self.addtoken(code[i])
 
+                if self.token[self.index][3] == u"return":
+                    for i in range(self.index-1,-1,-1):
+                        if self.token[i][3] == u"func" and  self.token[i][2] == False:
+                            _idx = [x[4] for x in self.lexer.eval.elements].index(self.token[i][4])
+                    self.token[self.index][2] = self.lexer.eval.elements[_idx][2]
+
             elif self.mode == "state_start":
                 if u'\n' == code[i]:
                     self.mode = "block_return"
@@ -166,7 +177,10 @@ class Parse(object):
                 print u"BlockError: 1行に2つ以上の命令を書かないでくださいみょん><\n"+code[i]
 
             if self.mode == "block_return" and u"func" in code and code[0] != u"end":
-                self.token[-1][5] = self.lexer.analylex(self.token[-1], True)[5]
+                self.token[self.index][5] = self.lexer.analylex(self.token[self.index], True)[5]
+                if self.token[self.index][5]!=[[]]:
+                    for i in range(len(self.token[self.index][5])):
+                        self.lexer.eval.newlex([u"var", self.token[self.index][5][i][1], str(self.depth)+u"_"+str(self.blockIndex[self.depth][1]), self.token[self.index][5][i][0]])
 
         if self.mode in ["state_end", "state", "block_return", "block_start"]:
             self.mode = "block_start"

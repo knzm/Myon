@@ -27,6 +27,11 @@ class Eval(object):
         self.current_fname = self.fname
 
     def newlex(self, token):
+        if self.elements != []:
+            for i in range(len(self.elements)):
+                if token[3] == self.elements[i][4] and token[2] == self.elements[i][3]:
+                        print u"Error: E3298 already declared\n", token
+
         self.elements.append([self.current_fname]+token)
         self.index += 1
         if token[0] == u"func":
@@ -39,6 +44,16 @@ class Eval(object):
 
     def execute(self, _token, depth):
         return self.rpn2py(self.txt2rpn(_token, depth))
+
+    def findval(self, _token, depth):
+        isFound = False
+        _depth = depth.split("_")
+        for i in range(len(self.values)):
+            if _token == self.values[i][0]:
+                d = self.elements[self.values[i][1]][3].split("_")
+                if (d[0] < _depth[0] or (d[0] == _depth[0] and d[1] == _depth[1])):
+                    isFound = True
+        return isFound
 
     def rpn2py(self, _token):
         _out = []
@@ -109,15 +124,8 @@ class Eval(object):
                     mode = "args"
                 else: print u"Error: E3298 Unexpected Error!"
             elif _token[i] == u"": continue
-            elif _token[i] in [x[0] for x in self.values]:
+            elif self.findval(_token[i], depth):
                 _this = self.elements[self.values[[x[0] for x in self.values].index(_token[i])][1]]
-                d = _this[3].split("_")
-                _depth = depth.split("_")
-                
-                if not (d[0] < _depth[0] or (d[0] == _depth[0] and d[1] == _depth[1])):
-                    print u"Warning:W000? 定義されていない識別子です。\n", _token[i]
-
-#                _out.append(_token[i])
                 _out.append([_token[i], _this[2]])
             elif _token[i] == u"(":
                 _braket += 1
@@ -133,7 +141,13 @@ class Eval(object):
                         if i == u",": _arg.append([])
                         else: _arg[-1].append(i)
 
-                    if len(pre_arg) != len(_arg):
+                    if pre_arg == [[]]:
+                        if _arg != [[]]:
+                            print u"Error: E3232 too many or less arguments\n", _arg
+                    elif _arg == [[]]:
+                        if pre_arg != [[]]:
+                            print u"Error: E3232 too many or less arguments\n", _arg
+                    elif len(pre_arg) != len(_arg):
                         print u"Error: E3232 too many or less arguments\n", _arg
 
                     if _this[5] != pre_arg:
@@ -183,7 +197,7 @@ class Eval(object):
 #                _out.append(_token[i])
                 _out.append([_token[i], _type])
             else:
-                print u"SyntaxError:不明なトークンです\n",_token[i]
+                print u"SyntaxError:不明なトークンです\n",_token[i],_token
         if _stack == [[]]:
             pass
         else: _out += _stack[-1][::-1]
