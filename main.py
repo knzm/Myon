@@ -2,8 +2,9 @@
 # -*- coding:utf-8 -*-
 
 import sys
-import parse
+import os
 
+import parse
 from Kuin import *
 
 
@@ -38,10 +39,10 @@ class Myon(object):
         self.parse.checkerror(True)
         self.parse.putcode(self.fname, mode="main")
 
-        path = u"/".join(self.fname.split(u"/")[:-1]) + u"/"
+        path = os.path.dirname(self.fname)
         for current_file in self.parse.fname:
-            self.loadfile(path + current_file)
-            self.parse.putcode(path + current_file)
+            self.loadfile(os.path.join(path, current_file))
+            self.parse.putcode(os.path.join(path, current_file))
         self.parse.checkerror()
         self.parse.checkfunc()
 
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print u"Error: E0002 ソースコードを一つだけ食べさせてください。例：kuin.exe hoge.kn"
     else:
-        if sys.argv[-1].split(".")[-1] != "kn":
+        if os.path.splitext(sys.argv[-1])[1] != "kn":
             print "Error: E0005 ソースコードのファイル形式が不明です。.knファイルを食べさせてください。"
         myon = Myon(sys.argv[1].decode('utf-8'))
         myon.main()

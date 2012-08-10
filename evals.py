@@ -1,7 +1,13 @@
-#! /usr/bin/python
 # -*- coding:utf-8 -*-
 
+import os
+from collections import namedtuple
+
 from Kuin import *
+
+OperatorInfo = namedtuple(
+    "OperatorInfo",
+    "kuin_token prior assoc py_token arity")
 
 
 def whtype(_str):
@@ -10,7 +16,7 @@ def whtype(_str):
         _type = u"int"
     elif _str in [u"true", u"false"]:
         _type = u"bool"
-    elif _str[0] == '"' and _str[-1] == '"':
+    elif _str.startswith('"') and _str.endswith('"'):
         _type = u"char"
     return _type
 
@@ -25,14 +31,14 @@ class Eval(object):
         self.excompile = []
 
     def setfile(self, _filename):
-        self.fname = _filename.split("/")[-1].split(".")[0]
+        self.fname = os.path.splitext(os.path.basename(_filename))[0]
         self.current_fname = self.fname
 
     def newlex(self, token):
         if self.elements != []:
-            for i in range(len(self.elements)):
-                if token[3] == self.elements[i][4] and token[2] == self.elements[i][3]:
-                        print u"Error: E3298 already declared\n", token
+            for i, elem in enumerate(self.elements):
+                if (token[3], token[2]) == (elem[4], elem[3]):
+                    print u"Error: E3298 already declared\n", token
 
         self.elements.append([self.current_fname] + token)
         self.index += 1
@@ -48,14 +54,13 @@ class Eval(object):
         return self.rpn2py(self.txt2rpn(_token, depth))
 
     def findval(self, _token, depth):
-        isFound = False
         _depth = depth.split("_")
-        for i in range(len(self.values)):
-            if _token == self.values[i][0]:
-                d = self.elements[self.values[i][1]][3].split("_")
-                if (d[0] < _depth[0] or (d[0] == _depth[0] and d[1] == _depth[1])):
-                    isFound = True
-        return isFound
+        for i, (t, idx) in enumerate(self.values):
+            if _token == t:
+                d = self.elements[idx][3].split("_")
+                if d[0] < _depth[0] or (d[0], d[1]) == (_depth[0], _depth[1]):
+                    return True
+        return False
 
     def rpn2py(self, _token):
         _out = []
@@ -67,6 +72,7 @@ class Eval(object):
         for i in range(len(_token)):
             if _token[i][0] in self.ops:
                 _idx = self.ops.index(_token[i][0])
+                op = OperatorInfo(*Operators[_idx])
 
                 # ()のある処理
                 if len(arg) < len(_token[i]) - 2:
@@ -77,14 +83,15 @@ class Eval(object):
                         if _type != j:
                             print u"Error: E0??? 演算子の型が合いません\n", arg
 
-                    arg[-Operators[_idx][4]:] = [arg[-1]]
+                    arg[-op.arity:] = [arg[-1]]
 
-                if Operators[_idx][4] == 1:
-                    _out[index-1:] = [Operators[_idx][3] + _out[index-1]]
-                elif Operators[_idx][4] == 2:
-                    _out[index-1:] = [u"(" + _out[index-1] + Operators[_idx][3] + _out[index] + u")"]
-
-                index -= Operators[_idx][4]
+                if op.arity == 1:
+                    expr = "%s%s" % (op.py_token, _out[index-1])
+                elif op.arity == 2:
+                    expr = u"(%s%s%s)" % (
+                        _out[index-1], op.py_token, _out[index])
+                _out[index-1:] = [expr]
+                index -= op.arity
             elif _token[i][0].split(u".")[-1] in [x[1] for x in self.excompile]:
                 _out.append(_token[i][0])
                 arg.append(u"int")
@@ -98,7 +105,7 @@ class Eval(object):
 
         if len(_out) != 1:
             for i in range(index):
-                _out[0] = _out[i+1] + u"(" + _out[0] + u")"
+                _out[0] = "%s(%s)" % (_out[i+1], _out[0])
 
         return [_out[0], arg[0]]
 
@@ -117,28 +124,33 @@ class Eval(object):
                 continue
             _type = whtype(_token[i])
             if mode == "type":
-                if not _token[i] in Types:
+                if _token[i] not in Types:
                     print u"Cautoin:C00?? 定義されていない型です。\n", _token[i]
                 mode = ""
-#                _out[-1] = _token[i] + u"(" + _out[-1] + u")"
-                _out[-1] = [_token[i] + u"(" + _out[-1] + u")", _token[i]]
+                expr = "%s(%s)" % (_token[i], _out[-1])
+#                _out[-1] = expr
+                _out[-1] = [expr, _token[i]]
+
             elif mode == "arg":
                 if _token[i] == u"(":
                     mode = "args"
                 else:
                     print u"Error: E3298 Unexpected Error!"
-            elif _token[i] == u"":
-                continue
+
             elif self.findval(_token[i], depth):
-                _this = self.elements[self.values[[x[0] for x in self.values].index(_token[i])][1]]
+                idx = [x[0] for x in self.values].index(_token[i])
+                _this = self.elements[self.values[idx][1]]
                 _out.append([_token[i], _this[2]])
+
             elif _token[i] == u"(":
                 _braket += 1
                 _stack.append([])
+
             elif _token[i] == u")" and _braket != pre_braket:
                 _braket -= 1
                 _out += _stack[-1][::-1]
                 _stack.pop()
+
             elif mode == "args":
                 if _token[i] == u")" and _braket == pre_braket:
                     _arg = [[]]
@@ -163,48 +175,62 @@ class Eval(object):
                         if _this[5] == [[]]:
                             _stack[-1][-1][0] += u"()"
                         else:
-                            _stack[-1][-1][0] += u"(" + u",".join([x[0] for x in _this[5]]) + u")"
+                            _stack[-1][-1][0] += u"(%s)" % (
+                                u",".join([x[0] for x in _this[5]]))
                     mode = ""
                     pre_braket = -1
                 else:
                     arg.append(_token[i])
+
             elif _token[i] in self.ops:
-                idx = Operators[self.ops.index(_token[i])]
-                if idx[4] == 1:
+                op = OperatorInfo(*Operators[self.ops.index(_token[i])])
+                if op.arity == 1:
                     _stack[-1].append([_token[i], u"any", u"any"])
-                elif idx[4] == 2:
-                    prior = idx[1]
+                elif op.arity == 2:
+                    prior = op.prior
                     if prior < _prior + _braket * MAX_OPRI:
                         _stack[-1].append([_token[i], u"any", u"any", u"any"])
                     else:
                         _out += _stack[-1][::-1]
                         _stack[-1] = [[_token[i], u"any", u"any", u"any"]]
                     _prior = prior
+
             elif u"@" in _token[i]:
                 name = _token[i].split(u"@")
                 self.excompile.append(name)
-                if name[1] in [x[0] for x in self.functions]:
-                    _this = self.elements[[x[0] for x in self.functions].index(name[1])]
+                func_names = [x[0] for x in self.functions]
+                if name[1] in func_names:
+                    mod_name, func_name = name[:2]
+                    func_idx = func_names.index(func_name)
+                    _this = self.elements[func_idx]
                     if _this[5] == [[]]:
-                        _stack[-1].append([name[1]] + [_this[2]])
+                        _stack[-1].append([func_name] + [_this[2]])
                     else:
-                        _stack[-1].append([name[1]] + [x[1] for x in _this[5]] + [_this[2]])
+                        _stack[-1].append([func_name] +
+                                          [x[1] for x in _this[5]] +
+                                          [_this[2]])
                     mode = "arg"
                     pre_braket = _braket
                     pre_arg = _this[5]
                 else:
-                    _stack.append([[name[0] + u"." + name[1]]])
+                    expr = u".".join([mod_name, func_name])
+                    _stack.append([[expr]])
+
             elif _token[i] == u":":
                 mode = "type"
+
             elif _token[i] == u"import":
                 _out.append(" ".join(_token[i:]))
+
             elif _type != u"None":
                 if _type == u"bool":
                     _token[i] = _token[i][0].upper() + _token[i][1:]
 #                _out.append(_token[i])
                 _out.append([_token[i], _type])
+
             else:
                 print u"SyntaxError:不明なトークンです\n", _token[i], _token
+
         if _stack == [[]]:
             pass
         else:
