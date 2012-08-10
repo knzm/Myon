@@ -6,12 +6,13 @@ import parse
 
 from Kuin import *
 
+
 class Myon(object):
     def __init__(self, filename):
         self.parse = parse.Parse()
         self.fname = filename
 
-    def loadfile(self,filename):
+    def loadfile(self, filename):
         self.parse.index = -1
         self.parse.reindex = -1
 
@@ -23,11 +24,13 @@ class Myon(object):
 
         self.fline = open(filename, 'r')
 
-        if self.fname == filename: self.parse.gettoken(u"import Kuin\n", self.fname, filename)
+        if self.fname == filename:
+            self.parse.gettoken(u"import Kuin\n", self.fname, filename)
         self.pline = u"hoge"
         while self.pline != u"":
             self.pline = self.fline.readline().decode('utf-8')
-            if self.parse.gettoken(self.pline, self.fname, filename) == -1: return -1
+            if self.parse.gettoken(self.pline, self.fname, filename) == -1:
+                return -1
         self.fline.close()
 
     def main(self):
@@ -35,10 +38,10 @@ class Myon(object):
         self.parse.checkerror(True)
         self.parse.putcode(self.fname, mode="main")
 
-        path = u"/".join(self.fname.split(u"/")[:-1])+u"/"
+        path = u"/".join(self.fname.split(u"/")[:-1]) + u"/"
         for current_file in self.parse.fname:
-            self.loadfile(path+current_file)
-            self.parse.putcode(path+current_file)
+            self.loadfile(path + current_file)
+            self.parse.putcode(path + current_file)
         self.parse.checkerror()
         self.parse.checkfunc()
 
