@@ -193,7 +193,7 @@ class Parse(object):
 
         return self.token
 
-    def putcode(self, fname, mode="extern"):
+    def getcode(self, fname, mode="extern"):
         if mode == "main":
             for i in range(len(self.token)):
                 self.token[i] = self.lexer.analylex(self.token[i])
@@ -215,14 +215,17 @@ class Parse(object):
 #                    print excompile[i][0]
 #                    print self.token
 
+        return _pyline.encode('utf-8')
+
+    def putcode(self, fname, mode="extern"):
+        code = self.getcode(fname, mode)
         _fname = "".join(fname.split(".")[:-1])+".py"
         _fline = open(_fname, 'w')
         _fline.write(u"#! /usr/bin/python\n".encode('utf-8'))
         _fline.write(u"# -*- coding:utf-8 -*-\n".encode('utf-8'))
-        _fline.write(_pyline.encode('utf-8'))
+        _fline.write(code)
         _fline.write(u'if __name__ == "__main__":\n    Main()'.encode('utf-8'))
         _fline.close()
-
         print "...compile done... -> "+_fname
 
     def putline(self):
