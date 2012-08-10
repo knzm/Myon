@@ -16,16 +16,17 @@ func Main()
         if(!b)
 {            do Kuin@Dbg(i.ToStr()) }
 {            do Log@WriteLn(i) }
-            do a::2+3*Sosu@AAA(311+221,200)
+            do a::2+3*Sosu@AAA({311+221,200})
         end if
     end for
 
 {  do Kuin@Stop() }
 end func
 
-func AAA(a:int, b:int) :bool
+func AAA({a:int, b:int}) {:bool} :int
     __python__
         print "hello!"
+        return 0
     __end_python__
 end func
 
